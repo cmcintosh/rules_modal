@@ -1,0 +1,179 @@
+<?php
+
+/**
+* Implements hook_menu callback
+*/
+function rules_modal_example_menu() {
+  $items['js/%ctools_js/rules_modal_example_boolean'] = array(
+    'page callback' => 'rules_modal_example_boolean',
+    'page arguments' => array(1),
+    'access callback' => TRUE,
+  );
+
+  return $items;
+}
+
+/**
+* Implements hook_rules_modal_info
+*/
+function rules_modal_example_rules_modal_info() {
+  return array(
+    'rules_modal_example_boolean' => array(
+      'title' => t('Boolean Example Modal'),
+      'path' => 'js/nojs/rules_modal_example_boolean'
+    ),
+  );
+}
+
+/**
+* Implements hook_rules_modal_form_response
+*/
+function rules_modal_example_rules_modal_form_response($form_id, $form_state = array()) {
+
+  if ($form_id == 'search_block_form') {
+    $output = drupal_render (drupal_get_form('rules_modal_example_boolean_form', TRUE));
+    $data = array(
+      'title' => t('Example Modal on Form Submit'),
+      'content' => $output,
+      'modal' => TRUE,
+      'continue' => FALSE,
+    );
+    print drupal_json_output($data);
+    exit();
+  }
+  else if($form_id == 'rules_modal_example_boolean_form') {
+    watchdog('devel_demo', print_r($_POST, true));
+    if($form_state['confirm'] == 1 || $_POST['confirm'] == 1) {
+
+      $data = array(
+        'modal' => FALSE,
+        'continue' => TRUE,
+        'submit' => 'search-block-form'
+      );
+    }
+    else {
+      $data = array(
+        'continue' => 'FALSE',
+        'modal' => 'FALSE'
+      );
+    }
+    print drupal_json_output($data);
+    exit();
+  }
+}
+
+/**
+* Implements hook_rules_modal_form
+*/
+function rules_modal_example_rules_modal_form($form_id, $form_state = array()) {
+  if ($form_id == 'search') {
+    if(TRUE) {
+      ctools_include('ajax');
+      ctools_include('modal');
+
+      $form_state = array(
+        'ajax' => TRUE,
+        'title' => t('Rules Modal Boolean Form'),
+      );
+
+      // Use ctools to generate ajax instructions for the browser to create
+      // a form in a modal popup.
+      $output = ctools_modal_form_wrapper('rules_modal_example_boolean_form', $form_state);
+
+      // If the form has been submitted, there may be additional instructions
+      // such as dismissing the modal popup.
+      if (!empty($form_state['ajax_commands'])) {
+        $output = $form_state['ajax_commands'];
+      }
+
+      // Return the ajax instructions to the browser via ajax_render().
+      print ajax_render($output);
+      drupal_exit();
+    }
+    else {
+      return drupal_get_form('rules_modal_example_boolean_form');
+    }
+  }
+}
+
+/**
+* Simple boolean form.
+*/
+function rules_modal_example_boolean($ajax) {
+
+  if (TRUE) {
+    ctools_include('ajax');
+    ctools_include('modal');
+
+    $form_state = array(
+      'ajax' => TRUE,
+      'title' => t('Rules Modal Boolean Form'),
+    );
+
+    // Use ctools to generate ajax instructions for the browser to create
+    // a form in a modal popup.
+    $output = ctools_modal_form_wrapper('rules_modal_example_boolean_form', $form_state);
+
+    // If the form has been submitted, there may be additional instructions
+    // such as dismissing the modal popup.
+    if (!empty($form_state['ajax_commands'])) {
+      $output = $form_state['ajax_commands'];
+    }
+
+    // Return the ajax instructions to the browser via ajax_render().
+    print ajax_render($output);
+    drupal_exit();
+  }
+  else {
+    return drupal_get_form('rules_modal_example_boolean_form');
+  }
+
+}
+
+
+function rules_modal_example_boolean_form($form, &$form_state, $modal_response = false) {
+  if ($modal_response) {
+    $form['confirm'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Are you sure you wish to continue?'),
+    );
+  }
+
+  $form['yes'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+    '#submit' => array('rules_modal_example_boolean_form_yes')
+  );
+
+  return $form;
+}
+
+function rules_modal_example_boolean_form_yes($form, &$form_state) {
+  // Tell the browser to close the modal.
+  $commands[] = ctools_modal_command_dismiss();
+
+  if (!empty($_GET['destination']) && false) {
+  //  $commands[] = ctools_ajax_command_redirect($_GET['destination']);
+  }
+  else {
+    $commands[] = ajax_command_remove('#messages');
+    $commands[] = ajax_command_prepend('.region-content', '<div id="messages">' . theme('status_messages') . '</div>');
+  }
+  print ajax_render($commands);
+  exit;
+}
+
+function rules_modal_example_boolean_form_no($form, &$form_state) {
+  // Tell the browser to close the modal. And we wand to redirect to prevent add to cart.
+  $commands[] = ctools_modal_command_dismiss();
+  drupal_set_message('You selected No');
+  if (!empty($_GET['destination'])  && false) {
+    $commands[] = ctools_ajax_command_redirect($_GET['destination']);
+  }
+  else {
+    $commands[] = ajax_command_remove('#messages');
+    $commands[] = ajax_command_prepend('.region-content', '<div id="messages">' . theme('status_messages') . '</div>');
+  }
+  print ajax_render($commands);
+  exit;
+}

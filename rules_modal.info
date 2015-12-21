@@ -1,0 +1,8 @@
+name = Rules Modal
+description = Allows displaying modals based on conditions / actions.
+package = Rules
+core = 7.x
+dependencies[] = ctools
+dependencies[] = rules
+
+scripts[] = js/rules_modal.behavior.js

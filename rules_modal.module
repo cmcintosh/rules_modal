@@ -1,0 +1,95 @@
+<?php
+
+/**
+* Implements hook_menu
+*/
+function rules_modal_menu() {
+  $items['rules_modal/%'] = array(
+    'page callback' => 'rules_modal_form_submit_ajax',
+    'page arguments' => array(1),
+    'access callback' => TRUE,
+  );
+  return $items;
+}
+
+
+/**
+* Implements hook_init()
+*/
+function rules_modal_init() {
+ ctools_include('modal');
+ ctools_include('ajax');
+}
+
+/**
+* Implements hook_rules_event_info
+*/
+function rules_modal_rules_event_info() {
+  $items = array(
+    'rules_modal_form_submit' => array(
+      'label' => t('Form Submission'),
+      'group' => t('Rules Modal'),
+      'variables' => array(
+        'form_id' => array(
+          'label' => t('Form Id'),
+          'type' => 'text'
+        )
+      )
+    )
+  );
+
+  return $items;
+}
+
+/**
+* Implements hook_rules_action_info
+*/
+function rules_modal_rules_action_info() {
+  return array(
+    'rules_modal' => array(
+      'label' => t('Display a Modal'),
+      'parameter' => array(
+        'modal_callback' => array(
+          'type' => 'text',
+          'label' => t('Select A Modal'),
+          'description' => t('Select the modal to display when this action runs.'),
+          'options list' => 'rules_modal_callback_options',
+          'restriction' => 'input',
+        ),
+      ),
+      'group' => t('Rules Modal'),
+      'base' => 'rules_modal',
+      'callbacks' => array( ),
+    ),
+  );
+}
+
+function rules_modal($modal_callback = '') {
+  drupal_add_js('Drupal.behaviors.rules_modal_display.show("'. $modal_callback .'");', 'inline');
+}
+
+function rules_modal_callback_options() {
+  $options = array( );
+  $callbacks = module_invoke_all('rules_modal_info');
+  foreach($callbacks as $id => $callback) {
+    $options[$callback['path']] = $callback['title'];
+  }
+  return $options;
+}
+
+/**
+* Responds to a form submit, and checks first if there is some sort of action that needs to fire.
+*/
+function rules_modal_form_submit_ajax($form_id, $form_data = NULL) {
+  $form_id = str_replace('-', '_', $form_id);
+  $form_data = $_POST['data'];
+  $callbacks = module_invoke_all('rules_modal_form_response', $form_id, $form_data);
+  // trigger the event, we need to return the resulting response in a
+  // sensible json data packet.
+  print drupal_json_output(
+    array(
+      'continue' => TRUE,
+    )
+  );
+  exit();
+}

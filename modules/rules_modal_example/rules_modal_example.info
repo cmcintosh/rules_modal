@@ -1,0 +1,6 @@
+name = Rules Modal Example
+description = Demonstrates creating a module for the rules_modal.
+package = Examples
+core = 7.x
+dependencies[] = ctools
+dependencies[] = rules
