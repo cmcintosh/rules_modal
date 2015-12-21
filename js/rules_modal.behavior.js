@@ -7,7 +7,7 @@ Drupal.behaviors.rules_modal_display = {
 
           var form_id = $(this).closest('form').attr('id');
           var form = $(this).closest('form');
-          if (form_id == 'rules-admin-add-reaction-rule' || form_id == 'rules-ui-add-element' || form_id.indexOf('rules-ui-add-element') > -1) {
+          if (form_id == 'rules-admin-add-reaction-rule' || form_id.indexOf('rules-admin-add-reaction-rule') > -1 || form_id == 'rules-ui-add-element' || form_id.indexOf('rules-ui-add-element') > -1) {
             return true;
           }
 
