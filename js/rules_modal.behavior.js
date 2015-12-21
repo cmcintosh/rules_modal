@@ -3,10 +3,13 @@ Drupal.behaviors.rules_modal_display = {
     (function ($) {
 
       $(document).ready(function(){
-        $('[type="submit"], [type="button"]').click(function(){
+        $('[type="submit"], [type="button"]').click(function(e){
 
           var form_id = $(this).closest('form').attr('id');
           var form = $(this).closest('form');
+          if (form_id == 'rules-admin-add-reaction-rule' || form_id == 'rules-ui-add-element' || form_id.indexOf('rules-ui-add-element') > -1) {
+            return true;
+          }
 
           var form_data = {};
           form.find('input, select, fieldset input, fieldset select').each(function(){
